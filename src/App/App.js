@@ -3,23 +3,39 @@ import Form from '../Form/Form';
 import Search from '../Search/Search';
 import { useDispatch, useSelector } from 'react-redux';
 import { Typography } from '@mui/material';
-import { selectAllState } from '../storage/selectors';
+import { selectFilter } from '../storage/selectors';
 import ContactList from '../List/ContactList';
 import { addFilter } from '../storage/filterSlice';
-import { useEffect } from 'react';
-import { addContactThunk, deleteContactThunk, getItemsThunk } from '../storage/Thunks';
 import { Triangle } from 'react-loader-spinner';
 import { ToastContainer, toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
+import { useGetAllContactsQuery, useAddContactMutation, useDeleteContactMutation } from '../storage/contactApi';
 
 export default function App() {
-  const { contacts, filter, isLoading, error } = useSelector(selectAllState);
-  const dispatch = useDispatch();
+  const { filter, contacts } = useSelector(selectFilter);
+  const { isError: isErrorGet, isLoading: isLoadingGet, status: statusGet, } = useGetAllContactsQuery()
+  const [dispatchDeleteContact, { status: statusDel, isError: isErrorDel, isLoading: isLoadingDel }] = useDeleteContactMutation()
+  const [dispatchAddNewContact, { status: statusAdd, isError: isErrorAdd, isLoading: isLoadingAdd }] = useAddContactMutation()
+  const dispatch = useDispatch()
+
+  const isError = isErrorGet || isErrorDel || isErrorAdd;
+  const isLoading = isLoadingGet || isLoadingDel || isLoadingAdd;
+
+  let errorStatus = null;
+  if (isErrorGet) {
+    errorStatus = statusGet;
+  } else if (isErrorDel) {
+    errorStatus = statusDel;
+  } else if (isErrorAdd) {
+    errorStatus = statusAdd;
+  }
+
   const handleFilter = (value) => {
     dispatch(addFilter(value));
   };
+
   const handleContactRemove = ({ currentTarget: { id } }) => {
-    dispatch(deleteContactThunk(id));
+    dispatchDeleteContact(id);
   };
 
   const notify = () => toast.info('A contact with the same name already exists in the Phonebook', {
@@ -39,17 +55,13 @@ export default function App() {
       notify()
       return;
     }
-    dispatch(addContactThunk(formData));
+    dispatchAddNewContact(formData);
   };
-
-  useEffect(() => {
-    dispatch(getItemsThunk())
-  }, [dispatch])
 
   const app =
     <AppContainer>
 
-      {error ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'start', height: '100vh' }}>ERROR: <span style={{ color: 'red' }}>{error}</span> , звернітся до адміністраторі сайта за телефоном: +8516461684646</div> : null}
+      {isError ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'start', height: '100vh' }}>STATUS:<span style={{ color: 'red' }}> {errorStatus}, </span> звернітся до адміністраторі сайта за телефоном: +8516461684646</div> : null}
       <Typography sx={{ fontSize: 'clamp(4rem, 6rem, 100%)' }} variant="h1">Phonebook</Typography>
       <Form onSubmit={handleSubmitForm} />
       <Typography sx={{ marginBottom: '0.2rem', fontSize: 'clamp(3rem, 5rem, 100%)' }} variant="h2">Contacts</Typography>

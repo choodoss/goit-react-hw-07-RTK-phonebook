@@ -1,8 +1,8 @@
 import { combineReducers } from "redux";
-import { reducerContact } from "./contactSlice";
 import { reducerFilter } from "./filterSlice";
+import { contactsApi } from "./contactApi";
 
-export const reducer = combineReducers({
-    contacts: reducerContact,
+export const reducer = ({
+    [contactsApi.reducerPath]: contactsApi.reducer,
     filter: reducerFilter,
 })
