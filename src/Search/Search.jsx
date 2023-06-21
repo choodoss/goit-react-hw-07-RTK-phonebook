@@ -7,7 +7,7 @@ export default function Search({ handleFilter, filter }) {
     };
 
     return (
-        <Box maxWidth={400} margin={'0 auto'} sx={{ marginBottom: '1rem',  }}>
+        <Box maxWidth={400} margin={'0 auto'} sx={{ marginBottom: '1rem', }}>
             <TextField
                 sx={{ width: '100%' }}
                 name="name"
